@@ -35,21 +35,22 @@ This repository is organised around the project pipeline rather than the structu
 
 ```text
 .
-+-- preprocessing/
++-- 1. preprocessing/
 |   +-- corpus extraction and sentence-level preprocessing
 |   +-- securitisation lexicon construction and SBERT expansion
 |   +-- stratified sampling, gold labels and weak-label scoring
 |   +-- intra-annotator agreement analysis
-+-- securitisation regression models/
++-- 2. securitisation regression models/
 |   +-- baseline gold-only regression model
 |   +-- full auxiliary supervision model
 |   +-- threat-only auxiliary supervision ablation
-+-- temporal analysis/
++-- 3. temporal analysis/
 |   +-- corpus-level inference outputs
 |   +-- party and election-level aggregation
 |   +-- comparison with public opinion and legislation timelines
-+-- Securitsing The Ballot writeup, Joshua Bourton.pdf
-+-- LaTeX writeup.zip
++-- writeup
+|   +-- Securitsing The Ballot writeup, Joshua Bourton.pdf
+|   +-- LaTeX writeup.zip
 +-- README.md
 ```
 
