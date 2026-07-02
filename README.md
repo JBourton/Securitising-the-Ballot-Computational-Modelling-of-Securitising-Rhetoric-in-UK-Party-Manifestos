@@ -1,53 +1,162 @@
-This folder contains all the main code files used in my securitisation regression model pipeline. I explain them all on a high level in this README, but you can find more details about what they do on lower-levels in the notebooks themselves, as I've added plenty of md cells throughout each one to provide context.
+# Securitising the Ballot
 
-I've split this code submission up into 3 subfolders, namely the preprocessing, the models themselves and the temporal analysis (explained in more detail below). I've included the juypter notebooks but also the additional files I use in my analysis (like my custom legislation timeline for the temporal analysis) or the files that I create from these notebooks (like excels & parquets etc) where relevant.
+Computational modelling of securitising rhetoric in UK party manifestos.
 
-### Subfolder 1: preprocessing
-The preprocessing is everything I needed to do to get the model inputs in the right form for training and inference. These are:
-- OCR-powered extraction of the manifesto corpus in `Extracting_and_preprocessing_manifesto_corpus.ipynb`
-- Stratified corpus sampling to create the gold label batches for human annotation, alongside weak label pool construction and tier-weighted lexicon scoring for the auxiliary supervision., in `stratified_corpus_sampler.ipynb`
-- Creation of the 3 lexicons I use for weak labelling in `Securitisation_Lexicons_Construction.ipynb`
-- Exploratory expansion of semantically similar corpus terms using SBERT in `SBERT_Lexicon_Expansion.ipynb`
-- Intra-annotator reliability assessed via blind re-annotation of a 150-sentence subset, using QWK scores to indicate substantial agreement across all three dimensions. Done in `Intra_Annotator_Agreement_Analysis.ipynb`
+This repository accompanies my project, **Securitising the Ballot: Computational Modelling of Securitising Rhetoric in UK Party Manifestos**. It contains the main notebooks, processed data files, weak-label resources, model training code and temporal analysis artifacts used to investigate how UK political parties have framed security-relevant issues in manifestos after 9/11.
 
-The supplementary files I include in this folder are:
-- `manifesto_corpus.parquet`: the full ~45,500 sentence strong manifesto corpus produced by `Extracting_and_preprocessing_manifesto_corpora.ipynb`.
-- `manifesto_corpus_weak_labels_scored.xlsx`, which is the remaining ~44,000 sentences from the corpus the tier-weighted lexicon scoring functions, produced by `stratified_corpus_sampler.ipynb`.
-- `securitsiation_lexicon`: the final lexicon produced by `Securitisation Lexicons Construction.ipynb` after going through SBERT-based expansion in `SBERT Lexicon Expansion.ipynb`. It's categorised into 3 sheets, 1 per each securitisation dimension, with dimension intensity labels added in the final column.
-- `party_map_uk.csv`, which holds the mapping between MARPOR party codes and their party names. Not substantive, but it's needed to run the `Extracting_and_preprocessing_manifesto_corpus.ipynb` file.
+The final writeup is included as [`Securitsing The Ballot writeup, Joshua Bourton.pdf`](Securitsing%20The%20Ballot%20writeup,%20Joshua%20Bourton.pdf), with the LaTeX source and figures bundled in [`LaTeX writeup.zip`](LaTeX%20writeup.zip).
 
-### Subfolder 2: securitisation regression models
-This folder contains the three securitisation regression models I compare against each other. Full details are in my paper, but the auxiliary supervised models extend the baseline's capabilities by using lexicon-generated ~44,000 psuedo-labels generated from the unlabelled corpus to supplement the 1500 hand-labelled gold-sentences. The full auxiliary variant applies that for all three securitisation dimensions and I selected it as the final reported model using results from 5-fold cross-validation (see my paper for more details). I'm keeping the selective (threat-only) variant as an ablation to show how I isolated the contribution of dimension-selective supervision. 
+## Project Context
 
-The models themselves are named `baseline`, `full_aux` and `threat_only`.
+Since 9/11, national security has become increasingly central to political discourse across Western democracies. In the UK, this has developed alongside legislation in areas such as counter-terrorism, surveillance, immigration and digital regulation, much of which has been criticised for expanding state power at the expense of civil liberties.
 
-I've chosen to exclude the model weights because they're ~800MB each. You can generate them by running the models with the provided inputs, though they do take a while to train (~1hr each) and need GPU. Alternatively you can reach out to me on xtzv61@durham.ac.uk to ask for them.
+This project examines that shift through **securitisation theory**, developed by the Copenhagen School of security studies. Securitisation theory does not treat security as a purely objective condition. Instead, it asks how political actors use discourse to frame an issue as an existential threat, assert urgency, and justify extraordinary measures that would otherwise sit outside normal democratic politics.
 
-The supplementary files I include for reference (which are needed in the files themselves if you choose to run them) are:
-- `manifesto_corpus_annotation_batches.xlsx`, which holds the 1500 sentences I hand-labelled for training the models.
-- `pre2005_annotation_workbook.xlsx`, containing the hand-annotated versions of the top 150 urgency sentences and top 100 justification sentences produced by running a version of the model over the 1987-2001 manifesto corpora (3 elections) to supplement the lack of high-intensity urgency and justification labels.
-- `manifesto_corpus_weak_labels_scored.xlsx`: a duplicate of what's in subfolder 1 but needed to run the model. so I put it here too for simplicity's sake.
+In this project I operationalise securitising rhetoric through three dimensions:
 
-### Subfolder 3: temporal analysis
-This contains the full code for my temporal analysis in the file `temporal_analysis.ipynb`
+- **Threat**: language that constructs an issue as dangerous, existential or hostile.
+- **Urgency**: language that compresses decision time and implies the need for immediate action.
+- **Justification of extraordinary power**: language that legitimises exceptional authority, enforcement or restrictions.
 
-It consists of 2 independent functions that I combined into one file for simplicity's sake, namely:
-- Inference (running my chosen full auxiliary supervision model over the full corpus and storing the result).
-- Analysis of the inference results, which I combine with supplementary Ipsos "Most prevalent issue in the UK" data (explained in the report, and that file) and with my own created timeline of securitising legislation brought into law in the UK (included in the appendix as a formatted table, and also in this folder as an excel).
+Party manifestos are a useful corpus for this because they are deliberate, formally edited statements of party priorities. Unlike speeches or social media posts, they are less reactive to immediate events and can show how parties embed security framings into longer-term policy commitments.
 
-The supplementary included in subfolder are:
-- `ipsos_securitisation_analysis.csv`: the monthly 2005–2024 [Ipsos most prevalent issues index](https://www.ipsos.com/en-uk/topic/issues-index) tracking five policy domains aligned with securitisation theory (defence, migration, economic, governance, health)
-- `corpus_sentence_predictions_full_aux.parquet`: the results of inference that I already pre-computed (so you don't need to re-run inference, which needs both GPU & time).
-- `uk_securitising_legislation_sectors.csv`: the legislation timeline I made for this analysis, which I use in the temporal analysis and show in my appendix.
+## Research Questions
 
+The project asks two linked questions:
+
+1. To what extent do UK political party manifestos post-9/11 exhibit rhetorical convergence in securitising language across parties and electoral cycles?
+2. How do shifts in party-level securitising rhetoric relate temporally to public opinion salience on security-relevant issues and to securitising legislation criticised as restrictive of civil liberties?
+
+The first question is about whether parties become more similar in either the volume or intensity of securitising language over time. The second asks whether those rhetorical shifts precede, follow or co-evolve with public opinion and legislative change.
+
+## What This Repository Contains
+
+This repository is organised around the project pipeline rather than the structure of the final report:
+
+```text
+.
++-- preprocessing/
+|   +-- corpus extraction and sentence-level preprocessing
+|   +-- securitisation lexicon construction and SBERT expansion
+|   +-- stratified sampling, gold labels and weak-label scoring
+|   +-- intra-annotator agreement analysis
++-- securitisation regression models/
+|   +-- baseline gold-only regression model
+|   +-- full auxiliary supervision model
+|   +-- threat-only auxiliary supervision ablation
++-- temporal analysis/
+|   +-- corpus-level inference outputs
+|   +-- party and election-level aggregation
+|   +-- comparison with public opinion and legislation timelines
++-- Securitsing The Ballot writeup, Joshua Bourton.pdf
++-- LaTeX writeup.zip
++-- README.md
+```
+
+The notebooks contain more detailed markdown commentary at the point where each methodological choice is implemented. This README is intended as a high-level map for readers who are seeing the project for the first time.
+
+## Pipeline at a Glance
+
+1. **Corpus preparation**: Extract UK party manifesto text, repair OCR artifacts, segment into sentences and create the sentence-level manifesto corpus.
+2. **Lexicon construction**: Build three theory-derived lexicons for threat, urgency and justification, with terms graded by rhetorical intensity.
+3. **Weak-label generation**: Use tier-weighted lexicon matches to produce continuous pseudo-labels for the unlabelled corpus.
+4. **Gold annotation**: Sample and hand-label 1,500 manifesto sentences on a 0-3 scale across the three securitisation dimensions, with an additional 250 pre-2005 sentences used for training augmentation.
+5. **Model training**: Compare a gold-only baseline against two auxiliary-supervision variants using a shared DeBERTa-v3-base encoder and dimension-specific regression heads.
+6. **Temporal analysis**: Run the selected model over the corpus, aggregate sentence-level predictions into party/election time series, and compare those trends against public issue salience and a curated UK legislation timeline.
+
+The selected full auxiliary model achieved macro Spearman 0.524 and macro QWK 0.623 on the held-out set, with 5-fold cross-validation confirming generalisation at macro Spearman 0.487 +/- 0.016. The final analysis found that securitising rhetoric did not simply converge across UK parties: threat became a shared baseline among the largest parties, while urgency more clearly distinguished the governing party.
+
+## Suggested Reading Order
+
+For a quick understanding of the whole project, I recommend:
+
+1. Read Sections 1 and 3 of the PDF writeup for the motivation, theory and methodology.
+2. Skim this README to understand the repository structure.
+3. Open the preprocessing notebooks in the order listed below.
+4. Read `full_aux.ipynb` before the other model notebooks if you only want the final selected model.
+5. Open `temporal_anlaysis.ipynb` last, because it depends on the model outputs and brings the project back to the research questions.
+
+## Reproducibility Notes
+
+The repository includes the main processed files needed to inspect the project and rerun much of the analysis. It does not include every raw or heavyweight artifact.
+
+- Trained model weights are not included because they are approximately 800 MB each. The models can be regenerated from the provided inputs, but training takes roughly one hour per model and requires a GPU.
+- Raw manifesto PDFs from the source corpus are not included. The processed sentence-level corpus is included instead.
+- Some notebooks reference intermediate audit, resume or scratch outputs that are not necessary for understanding the final project state.
+- The temporal analysis includes precomputed full-auxiliary corpus predictions so that the inference stage does not need to be rerun.
+- The project currently does not include a pinned `requirements.txt` or `environment.yml`. Adding one would make the repository easier to rerun on a fresh machine.
+
+## Folder 1: `preprocessing`
+
+The preprocessing folder contains everything needed to turn the manifesto corpus into model inputs and weak-supervision resources.
+
+The main notebooks are:
+
+- `Extracting_and_preprocessing_manifesto_corpus.ipynb`: OCR-powered extraction of the manifesto corpus, sentence segmentation, artifact repair, deduplication and export of the sentence-level corpus.
+- `Securitisation_Lexicons_Construction.ipynb`: construction of the three initial securitisation lexicons for threat, urgency and justification.
+- `SBERT_Lexicon_Expansion.ipynb`: exploratory expansion of semantically similar corpus terms using SBERT.
+- `stratified_corpus_sampler.ipynb`: stratified corpus sampling for gold annotation, weak-label pool construction and tier-weighted lexicon scoring for auxiliary supervision.
+- `Intra_Annotator_Agreement_Analysis.ipynb`: intra-annotator reliability analysis using blind re-annotation and quadratic weighted kappa scores.
+
+The supplementary files in this folder are:
+
+- `manifesto_corpus.parquet`: the full sentence-level manifesto corpus produced by the extraction and preprocessing notebook.
+- `manifesto_corpus_weak_labels_scored.xlsx`: the weak-label pool produced by the stratified sampler and lexicon scoring functions.
+- `securitisation_lexicon.xlsx`: the final securitisation lexicon, split into threat, urgency and justification sheets, with terms categorised by signal type.
+- `party_map_uk.csv`: the mapping between MARPOR party codes and UK party names, used during corpus extraction.
+
+## Folder 2: `securitisation regression models`
+
+This folder contains the three securitisation regression models compared in the project.
+
+The models are:
+
+- `baseline.ipynb`: the gold-only baseline model trained on the hand-labelled annotation set.
+- `full_aux.ipynb`: the final selected auxiliary-supervision model, using lexicon-derived pseudo-labels for all three securitisation dimensions.
+- `threat_only.ipynb`: a selective auxiliary-supervision ablation using only the threat pseudo-label signal.
+
+All three models use the same broad architecture: a shared DeBERTa-v3-base encoder, mean pooling over non-padding tokens, and separate regression heads for the three securitisation dimensions. The auxiliary variants extend the baseline by adding weak-supervision heads trained on the lexicon-derived pseudo-labels from the unlabelled corpus.
+
+The supplementary files in this folder are:
+
+- `manifesto_corpus_annotation_batches.xlsx`: the 1,500 hand-labelled gold sentences used for training and evaluation.
+- `pre2005_annotation_workbook.xlsx`: 250 manually labelled pre-2005 sentences selected to improve sparse high-intensity urgency and justification coverage in training.
+- `manifesto_corpus_weak_labels_scored.xlsx`: a duplicate of the weak-label file in `preprocessing`, included here so the model notebooks can be run from this folder more easily.
+
+The trained model weights are excluded because of their size. You can regenerate them by running the model notebooks with the provided inputs, or contact me at `xtzv61@durham.ac.uk` if you need the saved weights.
+
+## Folder 3: `temporal analysis`
+
+This folder contains the temporal analysis notebook and the external/contextual data used to interpret the model outputs.
+
+The main notebook is:
+
+- `temporal_anlaysis.ipynb`: corpus inference, party/election aggregation, visualisation, and comparison with issue salience and legislation timing.
+
+The analysis has two main stages:
+
+1. Running the selected full auxiliary model over the full manifesto corpus and storing sentence-level predictions.
+2. Aggregating those predictions by party and election cycle, then comparing the resulting securitisation time series with Ipsos issue-salience data and a curated timeline of UK securitising legislation.
+
+The supplementary files in this folder are:
+
+- `corpus_sentence_predictions_full_aux.parquet`: precomputed sentence-level predictions from the selected full auxiliary model.
+- `ipsos_securitisation_analysis.csv`: monthly 2005-2024 Ipsos Issues Index data for security-relevant policy domains.
+- `uk_securitising_legislation_sectors.csv`: the curated UK legislation timeline used in the temporal analysis and reported in the appendix.
+
+## Report Files
+
+- `Securitsing The Ballot writeup, Joshua Bourton.pdf`: the final project report.
+- `LaTeX writeup.zip`: the LaTeX source, bibliography and figure assets used to compile the report.
 
 ## Use of Generative AI
-During development of the code files I present here I selectively used generative AI (specifically, Claude Sonnet 4.6 by Anthropic) to help with low-level implementation (including regex and general debugging) and syntax/formatting tasks (including code refactoring for compactness, formatting visuals for my report). I have dedicated md cells in notebooks where I used these more extensively (namely `Extracting_and_preprocessing_manifesto_corpus.ipynb`, `SBERT_Lexicon_Expansion.ipynb` and `temporal_analysis.ipynb`), but have also made lighter isolated use of it for low-level tasks in other places in the codebase, which I intend this disclaimer to cover.
 
-However, all of the substantive work is entirely my own, including the design of the various methodologies in each file, all of the logic behind the analysis, the model architecture and training procedure, the constrution of the lexicons, the evaluation framework and the construction and annotation of the gold dataset.
+During development of the code files presented here, I selectively used generative AI, specifically Claude Sonnet 4.6 by Anthropic, to help with low-level implementation tasks such as regex, debugging, syntax, formatting and refactoring. I have dedicated markdown cells in the notebooks where I used it more extensively, especially in `Extracting_and_preprocessing_manifesto_corpus.ipynb`, `SBERT_Lexicon_Expansion.ipynb` and `temporal_anlaysis.ipynb`.
 
-For each use of it, I used chat-by-chat messages by writing a targeted query to help me fix/brainstorm a specific implementation or bit of formatting and I always tested these integrations before keeping them. Through doing this, I kept the AI's contribution to just helping me implement low-level logic, which kept all the planning, building and refining tightly under my own control.
+All substantive work is my own, including the methodological design, modelling choices, analysis logic, lexicon construction, evaluation framework, gold dataset construction and annotation.
 
-I made sure to bear in mind the known limitations of generative AI that the department has highlighted to me before, including its tendency to confirm its user's prompts to avoid challenging it and to produce confidently incorrect outputs, and also that it can be quite weak on edge cases. I was able to mitigate all of those by only keeping its role to the limited low-level logic I mentioned and carefully validating what it generated.
+I used AI chat-by-chat by writing targeted queries for specific implementation or formatting problems, and I tested generated integrations before keeping them. This kept AI's role limited to low-level support while the planning, building and refinement remained under my control.
 
-I did not use AI in my report in any capacity.
+I also accounted for known limitations of generative AI, including its tendency to affirm user prompts and produce confidently incorrect outputs, by keeping its role narrow and validating generated code carefully.
+
+I did not use AI in any capactiy in the report itself.
