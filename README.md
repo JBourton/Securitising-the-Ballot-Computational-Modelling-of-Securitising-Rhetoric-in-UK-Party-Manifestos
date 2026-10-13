@@ -51,6 +51,8 @@ This repository is organised around the project pipeline rather than the structu
 +-- writeup
 |   +-- Securitsing The Ballot writeup, Joshua Bourton.pdf
 |   +-- LaTeX writeup.zip
++-- figures/
+|   +-- report figures embedded in this README
 +-- README.md
 ```
 
@@ -66,6 +68,12 @@ The notebooks contain more detailed markdown commentary at the point where each 
 6. **Temporal analysis**: Run the selected model over the corpus, aggregate sentence-level predictions into party/election time series, and compare those trends against public issue salience and a curated UK legislation timeline.
 
 The selected full auxiliary model achieved macro Spearman 0.524 and macro QWK 0.623 on the held-out set, with 5-fold cross-validation confirming generalisation at macro Spearman 0.487 +/- 0.016. The final analysis found that securitising rhetoric did not simply converge across UK parties: threat became a shared baseline among the largest parties, while urgency more clearly distinguished the governing party.
+
+<p align="center">
+  <img src="figures/fig3_dimension_intensity.png" alt="Three line charts showing mean threat, urgency and justification scores among securitising sentences for the Conservatives, Labour, Liberal Democrats and SNP across the six elections from 2005 to 2024" width="800">
+  <br>
+  <em>Figure 3 in the writeup. Mean threat, urgency and justification intensity among securitising sentences (those scoring at or above 0.14 on the composite, the minimum of the three dimension scores) for the four major parties. Threat converges by 2024, while urgency splits as the Conservatives decline and the other three rise.</em>
+</p>
 
 ## Suggested Reading Order
 
@@ -118,6 +126,12 @@ The models are:
 
 All three models use the same broad architecture: a shared DeBERTa-v3-base encoder, mean pooling over non-padding tokens, and separate regression heads for the three securitisation dimensions. The auxiliary variants extend the baseline by adding weak-supervision heads trained on the lexicon-derived pseudo-labels from the unlabelled corpus.
 
+<p align="center">
+  <img src="figures/fig1_model_architecture.png" alt="Architecture diagram of the multi-head DeBERTa-v3-base model: a sentence is tokenised, encoded, mean pooled and dropped out, then passed to separate threat, urgency and justification gold heads, with a parallel auxiliary path of three heads used only in training">
+  <br>
+  <em>Figure 1 in the writeup. Architecture of the full auxiliary model. The three gold heads are the only ones used at inference, while the auxiliary path is trained on the lexicon pseudo-labels and then discarded. Training objective: <code>L_total = L_gold + 0.5 * L_aux + 0.1 * L_rdrop</code>.</em>
+</p>
+
 The supplementary files in this folder are:
 
 - `manifesto_corpus_annotation_batches.xlsx`: the 1,500 hand-labelled gold sentences used for training and evaluation.
@@ -139,6 +153,20 @@ The analysis has two main stages:
 1. Running the selected full auxiliary model over the full manifesto corpus and storing sentence-level predictions.
 2. Aggregating those predictions by party and election cycle, then comparing the resulting securitisation time series with Ipsos issue-salience data and a curated timeline of UK securitising legislation.
 
+Two of the outputs from the 2nd stage are shown below.
+
+<p align="center">
+  <img src="figures/fig4_party_heatmap.png" alt="Heatmap of composite exceedance rate for the eleven parties that contested all six elections from 2005 to 2024, with incumbents outlined in black and a bottom row giving the number of securitising Acts enacted in the preceding parliament" width="800">
+  <br>
+  <em>Figure 4 in the writeup. Composite exceedance rate (the share of a manifesto's sentences scoring at or above 0.14 on the composite) for the eleven parties that contested all six elections. Incumbents (the party in government after each election) are outlined in black, and the bottom row counts the securitising Acts enacted in the preceding parliament.</em>
+</p>
+
+<p align="center">
+  <img src="figures/fig5_salience_and_legislation.png" alt="Line chart of Ipsos Issues Index public salience for the five Copenhagen School sectors from 2005 to 2024, with a rug plot beneath marking the enactment date of each securitising Act by sector" width="800">
+  <br>
+  <em>Figure 5 in the writeup. Public salience of the five Copenhagen School sectors from the Ipsos Issues Index (12-month centred rolling mean). The rug beneath marks the enactment date of each securitising Act, by sector.</em>
+</p>
+
 The supplementary files in this folder are:
 
 - `corpus_sentence_predictions_full_aux.parquet`: precomputed sentence-level predictions from the selected full auxiliary model.
@@ -149,6 +177,7 @@ The supplementary files in this folder are:
 
 - `Securitsing The Ballot writeup, Joshua Bourton.pdf`: the final project report.
 - `LaTeX writeup.zip`: the LaTeX source, bibliography and figure assets used to compile the report.
+- `figures/`: copies of Figures 1, 3, 4 and 5 from the report, embedded in this README.
 
 ## Use of Generative AI
 
